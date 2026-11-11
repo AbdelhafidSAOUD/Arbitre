@@ -1,0 +1,55 @@
+# Vérifications automatiques à chaque envoi de code (push) ou demande de fusion.
+name: Vérifications
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  application:
+    name: Analyse, tests et compilation Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.50.0"
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - name: Contenu du serveur à jour avec l'application
+        run: |
+          dart run tool/generate_seed.dart
+          git diff --exit-code supabase/seed.sql
+      - name: Compilation Android (APK de test, signée avec la clé de débogage)
+        run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sifflet-academie-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 14
+
+  base-de-donnees:
+    name: Schéma et règles de sécurité (RLS)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./tool/test_database.sh

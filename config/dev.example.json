@@ -1,0 +1,6 @@
+{
+  "SUPABASE_URL": "https://VOTRE-PROJET.supabase.co",
+  "SUPABASE_KEY": "sb_publishable_VOTRE_CLE_PUBLIQUE",
+  "PRIVACY_URL": "https://votre-site.fr/confidentialite",
+  "SUPPORT_EMAIL": "contact@votre-site.fr"
+}

@@ -1,0 +1,170 @@
+[
+  {
+    "law": 1,
+    "title": "Le terrain",
+    "points": [
+      "Longueur de 90 à 120 m, largeur de 45 à 90 m (matchs internationaux : 100–110 m × 64–75 m).",
+      "Le rayon du cercle central et de l’arc de cercle de surface est de 9,15 m.",
+      "Point de penalty à 11 m ; surface de réparation à 16,5 m des montants.",
+      "Les lignes font partie des surfaces qu’elles délimitent."
+    ]
+  },
+  {
+    "law": 2,
+    "title": "Le ballon",
+    "points": [
+      "Circonférence de 68 à 70 cm, poids de 410 à 450 g.",
+      "Si le ballon devient défectueux, le jeu est arrêté et repris par une balle à terre.",
+      "Un ballon supplémentaire ne peut entrer sur le terrain qu’avec l’accord de l’arbitre."
+    ]
+  },
+  {
+    "law": 3,
+    "title": "Les joueurs",
+    "points": [
+      "Onze joueurs maximum, dont un gardien. Minimum sept pour commencer ou poursuivre.",
+      "Cinq remplacements maximum en compétition de haut niveau, en trois occasions plus la mi-temps.",
+      "Un remplaçant entre seulement après la sortie du joueur remplacé et avec l’autorisation de l’arbitre.",
+      "Échange joueur–gardien sans autorisation : laisser jouer, avertir les deux au prochain arrêt."
+    ]
+  },
+  {
+    "law": 4,
+    "title": "L’équipement des joueurs",
+    "points": [
+      "Équipement obligatoire : maillot, short, chaussettes, protège-tibias, chaussures.",
+      "Les couleurs doivent distinguer les deux équipes, les arbitres et les gardiens.",
+      "Bijoux interdits, même recouverts de ruban adhésif.",
+      "Perdre une chaussure accidentellement puis jouer immédiatement n’est pas une infraction."
+    ]
+  },
+  {
+    "law": 5,
+    "title": "L’arbitre",
+    "points": [
+      "L’arbitre peut revenir sur une décision tant que le jeu n’a pas repris.",
+      "Avantage : sanctionner la faute initiale s’il ne se concrétise pas dans les secondes qui suivent.",
+      "Ballon qui touche l’arbitre : balle à terre s’il y a changement de possession, attaque prometteuse ou but direct.",
+      "VAR : but ou non, penalty ou non, exclusion directe, erreur d’identité."
+    ]
+  },
+  {
+    "law": 6,
+    "title": "Les autres arbitres",
+    "points": [
+      "Les arbitres assistants signalent les sorties, le hors-jeu et les fautes hors du champ de l’arbitre.",
+      "L’assistant se place à hauteur de l’avant-dernier défenseur, ou du ballon s’il est plus près de la ligne de but.",
+      "Le quatrième arbitre gère les remplacements et la zone technique.",
+      "La décision finale appartient toujours à l’arbitre."
+    ]
+  },
+  {
+    "law": 7,
+    "title": "La durée du match",
+    "points": [
+      "Deux périodes de 45 minutes, sauf accord prévu par le règlement.",
+      "Pause de la mi-temps : 15 minutes maximum.",
+      "Le temps perdu (remplacements, blessures, gaspillage) est récupéré.",
+      "Une période est prolongée pour exécuter un penalty."
+    ]
+  },
+  {
+    "law": 8,
+    "title": "Coup d’envoi et reprise du jeu",
+    "points": [
+      "Au coup d’envoi, le ballon doit clairement bouger.",
+      "Un but peut être marqué directement contre l’adversaire.",
+      "Balle à terre : au dernier joueur à avoir touché le ballon ; dans la surface, au gardien.",
+      "Les autres joueurs se tiennent à au moins 4 m de la balle à terre."
+    ]
+  },
+  {
+    "law": 9,
+    "title": "Ballon en jeu et hors du jeu",
+    "points": [
+      "Le ballon est hors du jeu quand il a entièrement franchi une ligne.",
+      "Il reste en jeu s’il rebondit sur un montant, la barre, le poteau de coin ou un arbitre (sauf cas de balle à terre)."
+    ]
+  },
+  {
+    "law": 10,
+    "title": "L’issue d’un match",
+    "points": [
+      "But : ballon entièrement au-delà de la ligne, entre les montants et sous la barre.",
+      "Tirs au but : alternés, cinq par équipe puis mort subite.",
+      "Seuls les joueurs sur le terrain à la fin du match peuvent tirer."
+    ]
+  },
+  {
+    "law": 11,
+    "title": "Le hors-jeu",
+    "points": [
+      "Être en position de hors-jeu n’est pas une infraction.",
+      "Position : dans la moitié adverse, plus près de la ligne de but que le ballon et que l’avant-dernier adversaire.",
+      "Même hauteur que l’avant-dernier adversaire : pas de position de hors-jeu.",
+      "Mains et bras ne comptent pas pour juger la position.",
+      "Pas de hors-jeu sur coup de pied de but, rentrée de touche ou corner.",
+      "Un sauvetage du défenseur ne remet pas l’attaquant en jeu ; un jeu délibéré, oui."
+    ]
+  },
+  {
+    "law": 12,
+    "title": "Fautes et incorrections",
+    "points": [
+      "Imprudence : faute sans carton. Témérité : avertissement. Excès d’engagement : exclusion.",
+      "Annihilation d’occasion dans la surface avec tentative de jouer le ballon : avertissement.",
+      "Main délibérée qui empêche un but : exclusion, sauf le gardien dans sa surface.",
+      "Gardien qui garde le ballon plus de 8 secondes : corner pour l’adversaire (2025/26).",
+      "Main d’un attaquant : sanctionnée seulement si lui-même marque directement ou immédiatement après."
+    ]
+  },
+  {
+    "law": 13,
+    "title": "Les coups francs",
+    "points": [
+      "Adversaires à 9,15 m, sauf s’ils sont sur leur ligne de but entre les montants.",
+      "Mur d’au moins trois défenseurs : les attaquants restent à 1 m.",
+      "Coup franc indirect : bras levé jusqu’à ce que le ballon touche un autre joueur.",
+      "Coup franc indirect directement dans le but adverse : coup de pied de but."
+    ]
+  },
+  {
+    "law": 14,
+    "title": "Le penalty",
+    "points": [
+      "Le gardien garde au moins une partie d’un pied sur la ligne ou au niveau de celle-ci.",
+      "Le ballon doit être botté vers l’avant.",
+      "Feinte autorisée pendant la course d’élan, interdite une fois la course terminée.",
+      "Infraction du gardien, ballon non entré : penalty à retirer."
+    ]
+  },
+  {
+    "law": 15,
+    "title": "La rentrée de touche",
+    "points": [
+      "Les adversaires se tiennent à au moins 2 m du point de la rentrée.",
+      "Une partie de chaque pied sur la ligne ou à l’extérieur.",
+      "Pas de but direct ; dans son propre but, corner pour l’adversaire.",
+      "Le lanceur ne peut pas retoucher le ballon avant un autre joueur."
+    ]
+  },
+  {
+    "law": 16,
+    "title": "Le coup de pied de but",
+    "points": [
+      "Le ballon est en jeu dès qu’il est botté et bouge clairement.",
+      "Les adversaires restent hors de la surface jusqu’à ce que le ballon soit en jeu.",
+      "Un but peut être marqué directement contre l’adversaire."
+    ]
+  },
+  {
+    "law": 17,
+    "title": "Le coup de pied de coin",
+    "points": [
+      "Le ballon est placé dans l’arc de coin le plus proche de la sortie.",
+      "Adversaires à 9,15 m de l’arc jusqu’à ce que le ballon soit en jeu.",
+      "Un but peut être marqué directement contre l’adversaire.",
+      "Double touche du tireur : coup franc indirect pour l’adversaire."
+    ]
+  }
+]
