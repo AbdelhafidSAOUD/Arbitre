@@ -1,0 +1,43 @@
+# Publie la version web de l'application sur GitHub Pages à chaque envoi sur main.
+# Elle s'ouvre sur iPhone dans Safari et s'installe sur l'écran d'accueil
+# (Partager → Sur l'écran d'accueil). Sans serveur configuré, elle démarre en
+# mode local : les données restent dans le navigateur du téléphone.
+#
+# Prérequis (une seule fois) : Settings → Pages → Source : « GitHub Actions ».
+name: Version web (iPhone et navigateur)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.50.0"
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Compilation web
+        run: flutter build web --release --no-web-resources-cdn --base-href "/${{ github.event.repository.name }}/"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+      - id: deploiement
+        uses: actions/deploy-pages@v4
