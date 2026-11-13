@@ -12,6 +12,10 @@ class AppScope extends InheritedNotifier<AppState> {
   static AppState read(BuildContext context) => context.getInheritedWidgetOfExactType<AppScope>()!.notifier!;
 }
 
+/// Bouton à sa taille naturelle (les boutons pleins prennent toute la
+/// largeur par défaut, ce qui est impossible dans une ligne).
+const compactButton = ButtonStyle(minimumSize: WidgetStatePropertyAll(Size(64, 44)));
+
 enum Tone { ok, mid, ko, none }
 
 Tone toneForPercent(int? p) => p == null

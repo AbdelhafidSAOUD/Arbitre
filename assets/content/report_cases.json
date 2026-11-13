@@ -1,0 +1,107 @@
+[
+  {
+    "id": "violent",
+    "title": "Comportement violent",
+    "has_words": true,
+    "facts": [
+      [
+        "Compétition",
+        "Régional 2"
+      ],
+      [
+        "Match",
+        "Équipe A (domicile) – Équipe B"
+      ],
+      [
+        "Minute",
+        "67e minute, score 1-1"
+      ],
+      [
+        "Fautif",
+        "Joueur n° 5 de l’équipe B"
+      ],
+      [
+        "Victime",
+        "Joueur n° 9 de l’équipe A"
+      ],
+      [
+        "Témoin",
+        "Arbitre assistant n° 1"
+      ]
+    ],
+    "story": "Le n° 9 A récupère le ballon par un tacle régulier, à environ 25 m du but de l’équipe B, côté gauche. Le n° 5 B se relève, se dirige vers lui et lui donne un coup de poing au visage, ballon en jeu. Vous arrêtez le jeu, à 10 m de l’action. En quittant le terrain, le n° 5 B vous dit : « T’es un nul, tu vas voir à la sortie. » Le n° 9 A saigne du nez, il est soigné et reprend. L’assistant 1 a vu la scène.",
+    "model": [
+      "Exclusion de M. [NOM Prénom], joueur n° 5 de l’équipe B, à la 67e minute, pour comportement violent envers un adversaire.",
+      "À la 67e minute, le score est de 1 but partout. Le joueur n° 9 de l’équipe A récupère le ballon par un tacle régulier, à environ 25 m du but de l’équipe B, côté gauche du terrain. Je suis placé à une dizaine de mètres, face à l’action.",
+      "Le joueur n° 5 de l’équipe B se relève, se dirige vers le n° 9 A et lui porte un coup de poing au visage, ballon en jeu. Le n° 9 A tombe au sol, il saigne du nez. Mon assistant n° 1 voit les faits.",
+      "J’arrête immédiatement le jeu et j’exclus le n° 5 B pour comportement violent en lui présentant le carton rouge. En quittant le terrain, il me dit : « T’es un nul, tu vas voir à la sortie. »",
+      "Le n° 9 A reçoit des soins sur le terrain puis reprend sa place. Je fais reprendre le jeu par un coup franc direct pour l’équipe A à l’endroit de la faute."
+    ]
+  },
+  {
+    "id": "banc",
+    "title": "Propos d’un remplaçant",
+    "has_words": true,
+    "facts": [
+      [
+        "Compétition",
+        "Départemental 1"
+      ],
+      [
+        "Match",
+        "Équipe C (domicile) – Équipe D"
+      ],
+      [
+        "Minute",
+        "38e minute, score 0-1"
+      ],
+      [
+        "Fautif",
+        "Remplaçant n° 14 de l’équipe C, sur le banc"
+      ],
+      [
+        "Victime",
+        "Arbitre assistant n° 2"
+      ]
+    ],
+    "story": "Ballon en jeu dans le camp de l’équipe D. Sur une touche signalée par l’assistant 2, le remplaçant n° 14 C se lève du banc et lui crie : « T’es aveugle, espèce de tricheur ! » À l’arrêt de jeu suivant, l’assistant vous rapporte les propos mot pour mot. Vous en avez entendu une partie.",
+    "model": [
+      "Exclusion de M. [NOM Prénom], remplaçant n° 14 de l’équipe C, à la 38e minute, pour propos injurieux envers un arbitre assistant.",
+      "À la 38e minute, l’équipe D mène 1 but à 0. Le ballon est en jeu dans le camp de l’équipe D. Mon assistant n° 2 signale une rentrée de touche devant le banc de l’équipe C.",
+      "Le remplaçant n° 14 de l’équipe C se lève du banc et crie à mon assistant : « T’es aveugle, espèce de tricheur ! » J’entends une partie des propos ; mon assistant me les rapporte mot pour mot au premier arrêt de jeu.",
+      "Au premier arrêt de jeu, je me rends devant le banc et j’exclus le remplaçant n° 14 C pour propos injurieux en lui présentant le carton rouge. Il quitte le banc et rejoint les vestiaires sans autre incident.",
+      "Je fais reprendre le jeu par la reprise prévue au moment de l’arrêt, une rentrée de touche pour l’équipe D. L’équipe C conserve 11 joueurs sur le terrain."
+    ]
+  },
+  {
+    "id": "main",
+    "title": "But annihilé de la main",
+    "has_words": false,
+    "facts": [
+      [
+        "Compétition",
+        "Régional 3"
+      ],
+      [
+        "Match",
+        "Équipe E (domicile) – Équipe F"
+      ],
+      [
+        "Minute",
+        "81e minute, score 2-2"
+      ],
+      [
+        "Fautif",
+        "Joueur n° 3 de l’équipe E"
+      ]
+    ],
+    "story": "Sur un tir de l’attaquant n° 10 F depuis l’entrée de la surface, le n° 3 E, placé sur sa ligne de but entre les montants, repousse volontairement le ballon du bras droit. Le ballon allait entrer. Vous êtes à 15 m, dans l’axe.",
+    "model": [
+      "Exclusion de M. [NOM Prénom], joueur n° 3 de l’équipe E, à la 81e minute, pour avoir annihilé un but en touchant volontairement le ballon de la main.",
+      "À la 81e minute, le score est de 2 buts partout. L’attaquant n° 10 de l’équipe F tire depuis l’entrée de la surface de réparation de l’équipe E. Je suis placé à environ 15 m, dans l’axe du but.",
+      "Le joueur n° 3 de l’équipe E, placé sur sa ligne de but entre les montants, écarte le bras droit et repousse volontairement le ballon qui allait franchir la ligne.",
+      "J’arrête le jeu, j’accorde un penalty à l’équipe F et j’exclus le n° 3 E pour avoir annihilé un but de la main, en lui présentant le carton rouge. Il quitte le terrain sans contester.",
+      "Le jeu reprend par le penalty, tiré par le n° 10 F."
+    ]
+  }
+]

@@ -2,8 +2,9 @@ import 'package:material_ui/material_ui.dart';
 
 import '../config.dart';
 import '../models/content.dart';
-import '../models/user_data.dart';
 import 'common.dart';
+import 'exam_cases_screen.dart';
+import 'report_screen.dart';
 import 'home_tab.dart';
 
 class TrainingTab extends StatelessWidget {
@@ -18,7 +19,7 @@ class TrainingTab extends StatelessWidget {
         eyebrow: 'S’entraîner',
         title: 'Choisir une séance',
         subtitle: 'Les questions s’adaptent à votre profil : '
-            '${profileLevels[s.profile.level]!.toLowerCase()}, ${profileRoles[s.profile.role]!.toLowerCase()}.',
+            '${s.profile.categoryLabel}, ${s.profile.isAssistant ? 'arbitre assistant' : 'arbitre central'}.',
       ),
       const SizedBox(height: 16),
       ActionTile(
@@ -32,6 +33,18 @@ class TrainingTab extends StatelessWidget {
       ),
       const SizedBox(height: 10),
       TileGrid(children: [
+        ActionTile(
+          icon: Icons.fact_check_outlined,
+          title: 'Format examen',
+          subtitle: '${s.content.examCases.length} cas · cocher toutes les décisions',
+          onTap: () => openExamCases(context),
+        ),
+        ActionTile(
+          icon: Icons.edit_note,
+          title: 'Rapport disciplinaire',
+          subtitle: 'Rédiger, être corrigé, comparer au modèle',
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ReportScreen())),
+        ),
         ActionTile(icon: Icons.bolt, title: 'Quiz rapide', subtitle: '10 questions, toutes lois', onTap: () => runAction(context, 'quick')),
         ActionTile(
             icon: Icons.timer_outlined,

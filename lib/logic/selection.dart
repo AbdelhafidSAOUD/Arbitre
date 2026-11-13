@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../models/content.dart';
+import 'categories.dart';
 
 /// Poids d'une question selon le profil : un débutant reçoit surtout des
 /// questions simples, un arbitre confirmé des cas difficiles, un assistant
@@ -13,10 +14,13 @@ double questionWeight(
   double? lawAccuracy,
 }) {
   var w = 1.0;
-  if (level == 'jeune') {
-    w = switch (q.difficulty) { 1 => 3, 2 => 1.4, _ => .35 };
-  } else if (level == 'federal' || level == 'formateur') {
-    w = switch (q.difficulty) { 3 => 3, 2 => 2, _ => .7 };
+  switch (tierFor(level)) {
+    case Tier.beginner:
+      w = switch (q.difficulty) { 1 => 3, 2 => 1.4, _ => .35 };
+    case Tier.expert:
+      w = switch (q.difficulty) { 3 => 3, 2 => 2, _ => .7 };
+    case Tier.confirmed:
+      break;
   }
   if (q.roleTag == 'assistant' && role != 'central') w *= 2;
   if (lawAccuracy != null && lawAccuracy < .6) w *= 1.4;

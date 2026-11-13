@@ -34,6 +34,13 @@ insert into public.sessions (id, mode, correct, total, played_on) values (gen_ra
 insert into public.matches (id, played_on, competition, role, observer_note) values
   (gen_random_uuid(), current_date, 'U17 Régional 1', 'Arbitre central', 14.5);
 insert into public.badges (badge_id) values ('first');
+update public.profiles set level = 'ligue', level_detail = 'R2', role = 'assistant', also_other = true
+  where id = '00000000-0000-0000-0000-00000000000a';
+insert into public.matches (id, played_on, competition, role, status, goal) values
+  (gen_random_uuid(), current_date + 3, 'Régional 2', 'Arbitre assistant', 'prevu', 'Rester à hauteur');
+insert into public.physical_results (id, test, value, passed, done_on) values (gen_random_uuid(), 'sprint30', '4,88', true, current_date);
+insert into public.category_suggestions (id, country, kind, label) values
+  ('00000000-0000-0000-0000-0000000000c1', 'MA', 'categorie', 'Arbitre Botola Pro');
 
 select pg_temp.doit_echouer(
   $$insert into public.profiles (id) values ('00000000-0000-0000-0000-00000000000b')$$,
@@ -47,6 +54,23 @@ select pg_temp.doit_echouer(
 select pg_temp.doit_echouer(
   $$insert into public.matches (id, played_on, competition, role, observer_note) values (gen_random_uuid(), current_date, 'X', 'Arbitre central', 25)$$,
   'note d’observateur hors de 0–20');
+select pg_temp.doit_echouer(
+  $$update public.profiles set level = 'inventee' where id = '00000000-0000-0000-0000-00000000000a'$$,
+  'catégorie inconnue sur le profil');
+select pg_temp.doit_echouer(
+  $$insert into public.matches (id, played_on, competition, role, satisfaction) values (gen_random_uuid(), current_date, 'X', 'Arbitre central', 9)$$,
+  'satisfaction hors de 1–5');
+select pg_temp.doit_echouer(
+  $$insert into public.category_suggestions (id, country, kind, label, status) values (gen_random_uuid(), 'FR', 'categorie', 'Auto-validée', 'validee')$$,
+  'A valide lui-même sa proposition de catégorie');
+select pg_temp.doit_echouer(
+  $$insert into public.category_suggestions (id, user_id, country, kind, label) values (gen_random_uuid(), '00000000-0000-0000-0000-00000000000b', 'FR', 'categorie', 'Au nom de B')$$,
+  'A propose une catégorie au nom de B');
+select pg_temp.doit_echouer(
+  $$insert into public.physical_results (id, test, value, done_on) values (gen_random_uuid(), 'marathon', '3h', current_date)$$,
+  'test physique inconnu');
+-- Pas de règle de modification pour l'auteur : la validation ne touche aucune ligne.
+update public.category_suggestions set status = 'validee';
 -- Pas de règle de modification : la mise à jour ne touche aucune ligne.
 update public.answers set correct = true;
 delete from public.answers;
@@ -69,14 +93,35 @@ do $$ begin
   if exists (select 1 from public.sessions) then raise exception 'B voit les séances de A'; end if;
   if exists (select 1 from public.matches) then raise exception 'B voit les matchs de A'; end if;
   if exists (select 1 from public.badges) then raise exception 'B voit les badges de A'; end if;
+  if exists (select 1 from public.physical_results) then raise exception 'B voit les tests physiques de A'; end if;
+  if exists (select 1 from public.category_suggestions) then raise exception 'B voit une proposition non validée de A'; end if;
   raise notice 'OK : B ne voit aucune donnée de A';
 end $$;
 update public.profiles set xp = 99999 where id = '00000000-0000-0000-0000-00000000000a';
 delete from public.matches;
+delete from public.physical_results;
+reset role;
+do $$ begin
+  if (select status from public.category_suggestions) <> 'en_attente' then raise exception 'A a validé sa propre proposition'; end if;
+  if (select count(*) from public.physical_results) <> 1 then raise exception 'B a supprimé les tests physiques de A'; end if;
+end $$;
+-- Un administrateur valide la proposition : elle devient visible de tous.
+update public.category_suggestions set status = 'validee';
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+do $$ begin
+  if (select count(*) from public.category_suggestions where status = 'validee') <> 1 then
+    raise exception 'B ne voit pas la catégorie validée';
+  end if;
+  raise notice 'OK : une catégorie validée est visible des autres arbitres';
+end $$;
+update public.category_suggestions set label = 'Modifiée par B';
+delete from public.category_suggestions;
 reset role;
 do $$ begin
   if (select xp from public.profiles where id = '00000000-0000-0000-0000-00000000000a') <> 0 then raise exception 'B a modifié le profil de A'; end if;
-  if (select count(*) from public.matches) <> 1 then raise exception 'B a supprimé les matchs de A'; end if;
+  if (select count(*) from public.matches) <> 2 then raise exception 'B a supprimé les matchs de A'; end if;
+  if (select label from public.category_suggestions) <> 'Arbitre Botola Pro' then raise exception 'B a modifié une catégorie'; end if;
   raise notice 'OK : B ne peut ni modifier ni supprimer les données de A';
 end $$;
 
@@ -93,8 +138,11 @@ do $$ begin
   if exists (select 1 from public.profiles where id = '00000000-0000-0000-0000-00000000000a')
      or exists (select 1 from public.answers) or exists (select 1 from public.matches)
      or exists (select 1 from public.reviews) or exists (select 1 from public.sessions)
-     or exists (select 1 from public.badges) then
+     or exists (select 1 from public.badges) or exists (select 1 from public.physical_results) then
     raise exception 'données restantes après suppression du compte';
+  end if;
+  if exists (select 1 from public.category_suggestions where user_id is not null) then
+    raise exception 'la proposition de catégorie reste liée au compte supprimé';
   end if;
   raise notice 'OK : la suppression du compte efface toutes ses données';
 end $$;

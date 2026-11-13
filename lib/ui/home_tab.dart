@@ -7,6 +7,7 @@ import '../models/user_data.dart';
 import '../theme.dart';
 import 'common.dart';
 import 'learn_tab.dart';
+import 'matches_tab.dart';
 import 'quiz_screen.dart';
 
 /// Lance une séance ou ouvre une fiche selon le type de tâche.
@@ -42,11 +43,11 @@ class HomeTab extends StatelessWidget {
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('${(p.firstName?.isNotEmpty ?? false) ? 'Bonjour ${p.firstName} · ' : ''}Niveau actuel',
+                Text('${(p.firstName?.isNotEmpty ?? false) ? 'Bonjour ${p.firstName} · ' : ''}${p.isAssistant ? 'Arbitre assistant' : 'Arbitre central'}',
                     style: TextStyle(fontSize: 13, color: c.onNavy.withValues(alpha: .78))),
-                Text('ARBITRE ${lv.name.toUpperCase()}',
-                    style: TextStyle(fontFamily: kDisplay, fontSize: 28, fontWeight: FontWeight.w800, color: c.onNavy, height: 1.05)),
-                Text('${p.xp} XP${lv.next != null ? ' · ${lv.next! - p.xp} XP avant ${lv.nextName}' : ''}',
+                Text(p.categoryLabel.toUpperCase(),
+                    style: TextStyle(fontFamily: kDisplay, fontSize: 26, fontWeight: FontWeight.w800, color: c.onNavy, height: 1.05)),
+                Text('${lv.name} d’entraînement · ${p.xp} XP${lv.next != null ? ' · ${lv.next! - p.xp} XP avant le ${lv.nextName!.toLowerCase()}' : ''}',
                     style: TextStyle(fontSize: 13, color: c.onNavy.withValues(alpha: .78))),
               ]),
             ),
@@ -72,6 +73,21 @@ class HomeTab extends StatelessWidget {
       if (s.syncError != null) ...[
         const SizedBox(height: 10),
         Text(s.syncError!, style: TextStyle(fontSize: 13, color: c.muted)),
+      ],
+      if (s.data.plannedMatches.isNotEmpty) ...[
+        const SectionTitle('Prochain match'),
+        Builder(builder: (context) {
+          final m = s.data.plannedMatches.first;
+          return ListBox(children: [
+            Row2(
+              leading: Icon(Icons.event, color: c.pitch),
+              title: '${shortDate(m.playedOn)} · ${m.competition}',
+              subtitle: (m.goal ?? '').isNotEmpty ? 'Objectif : ${m.goal}' : '${m.role} · pas encore d’objectif',
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => openMatchForm(context, existing: m, debrief: !(parseDay(m.playedOn)?.isAfter(DateTime.now()) ?? true)),
+            ),
+          ]);
+        }),
       ],
       SectionTitle('Programme du jour', trailing: Pill('$done/${tasks.length}', tone: done == tasks.length ? Tone.ok : Tone.none)),
       Padding(

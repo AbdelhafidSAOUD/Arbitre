@@ -1,13 +1,8 @@
 import '../config.dart';
+import '../logic/categories.dart';
 import '../logic/dates.dart';
 import '../logic/srs.dart';
 
-const profileLevels = <String, String>{
-  'jeune': 'Jeune arbitre / débutant',
-  'district': 'Arbitre de district ou de ligue',
-  'federal': 'Arbitre régional ou fédéral',
-  'formateur': 'Formateur ou observateur',
-};
 const profileRoles = <String, String>{
   'central': 'Arbitre central',
   'assistant': 'Arbitre assistant',
@@ -28,13 +23,35 @@ const evalCriteria = <(String, String)>[
   ('laws', 'Application des lois'),
   ('management', 'Gestion des joueurs'),
   ('communication', 'Communication'),
+  ('concentration', 'Concentration'),
+];
+
+/// Satisfaction après match, de 1 à 5.
+const satisfactionLabels = ['', 'Très déçu', 'Déçu', 'Correct', 'Satisfait', 'Très satisfait'];
+
+/// Points à travailler proposés au débriefing (l'arbitre peut en ajouter).
+const workPointChoices = [
+  'Lecture du hors-jeu',
+  'Placement sur coups de pied arrêtés',
+  'Placement dans le jeu',
+  'Gestion des bancs',
+  'Timing des cartons',
+  'Concentration en fin de match',
+  'Sprint de repli',
+  'Communication avec l’équipe arbitrale',
+  'Gestuelle et signaux',
+  'Gestion des conflits',
 ];
 
 class Profile {
   const Profile({
     this.firstName,
+    this.country = 'FR',
     this.level = 'district',
+    this.levelDetail,
+    this.customCategory,
     this.role = 'central',
+    this.alsoOther = false,
     this.goal = 'progresser',
     this.birthYear,
     this.parentalConsent = false,
@@ -48,7 +65,15 @@ class Profile {
   });
 
   final String? firstName;
-  final String level, role, goal;
+  final String country; // FR | MA
+  /// Catégorie officielle (voir logic/categories.dart), ou « autre » :
+  /// la catégorie saisie est alors dans [customCategory].
+  final String level;
+  final String? levelDetail; // niveau précis : R2, F4…
+  final String? customCategory;
+  final String role, goal;
+  /// Officie aussi dans l'autre fonction (central et assistant).
+  final bool alsoOther;
   final int? birthYear;
   final bool parentalConsent;
   final String? parentEmail;
@@ -67,6 +92,16 @@ class Profile {
 
   bool get isMinor => isMinorBirthYear(birthYear);
 
+  bool get isAssistant => role == 'assistant';
+
+  /// Libellé complet de la catégorie : « Arbitre de ligue · R2 ».
+  String get categoryLabel {
+    final name = level == customCategoryId
+        ? ((customCategory?.isNotEmpty ?? false) ? customCategory! : 'Autre catégorie')
+        : (findCategory(country, level)?.name ?? 'Catégorie à préciser');
+    return (levelDetail?.isNotEmpty ?? false) ? '$name · $levelDetail' : name;
+  }
+
   /// Le profil est complet quand la politique de confidentialité en vigueur
   /// est acceptée et, pour un mineur, quand l'accord parental est donné.
   bool get isComplete =>
@@ -77,8 +112,12 @@ class Profile {
 
   Profile copyWith({
     String? firstName,
+    String? country,
     String? level,
+    String? Function()? levelDetail,
+    String? Function()? customCategory,
     String? role,
+    bool? alsoOther,
     String? goal,
     int? birthYear,
     bool? parentalConsent,
@@ -92,8 +131,12 @@ class Profile {
   }) =>
       Profile(
         firstName: firstName ?? this.firstName,
+        country: country ?? this.country,
         level: level ?? this.level,
+        levelDetail: levelDetail == null ? this.levelDetail : levelDetail(),
+        customCategory: customCategory == null ? this.customCategory : customCategory(),
         role: role ?? this.role,
+        alsoOther: alsoOther ?? this.alsoOther,
         goal: goal ?? this.goal,
         birthYear: birthYear ?? this.birthYear,
         parentalConsent: parentalConsent ?? this.parentalConsent,
@@ -109,8 +152,12 @@ class Profile {
   /// Ligne de la table `profiles` (sans l'id, ajouté par l'appelant).
   Map<String, dynamic> toRow() => {
         'first_name': (firstName?.isEmpty ?? true) ? null : firstName,
+        'country': country,
         'level': level,
+        'level_detail': (levelDetail?.isEmpty ?? true) ? null : levelDetail,
+        'custom_category': level == customCategoryId && (customCategory?.isNotEmpty ?? false) ? customCategory : null,
         'role': role,
+        'also_other': alsoOther,
         'goal': goal,
         'birth_year': birthYear,
         'parental_consent': parentalConsent,
@@ -125,8 +172,12 @@ class Profile {
 
   factory Profile.fromRow(Map<String, dynamic> j) => Profile(
         firstName: j['first_name'] as String?,
-        level: (j['level'] as String?) ?? 'district',
+        country: (j['country'] as String?) == 'MA' ? 'MA' : 'FR',
+        level: migrateLevel((j['level'] as String?) ?? 'district'),
+        levelDetail: j['level_detail'] as String?,
+        customCategory: j['custom_category'] as String?,
         role: (j['role'] as String?) ?? 'central',
+        alsoOther: (j['also_other'] as bool?) ?? (j['role'] == 'mixte'),
         goal: (j['goal'] as String?) ?? 'progresser',
         birthYear: (j['birth_year'] as num?)?.toInt(),
         parentalConsent: (j['parental_consent'] as bool?) ?? false,
@@ -187,30 +238,102 @@ class SessionRecord {
       );
 }
 
+/// Un match du carnet : prévu (désignation à venir) ou joué (débriefé).
 class MatchEntry {
   const MatchEntry({
     required this.id,
     required this.playedOn,
     required this.competition,
     required this.role,
+    this.status = 'joue',
+    this.teams,
+    this.goal,
+    this.goalResult,
+    this.satisfaction,
+    this.feeling,
+    this.workPoints = const [],
+    this.nextGoal,
+    this.yellowCards = 0,
+    this.redCards = 0,
     this.observerNote,
     this.improvement,
     this.evals = const {},
   });
   final String id, playedOn, competition, role;
+  final String status; // prevu | joue
+  final String? teams;
+  final String? goal; // objectif fixé pour ce match
+  final String? goalResult; // atteint | en_partie | non_atteint
+  final int? satisfaction; // 1 à 5
+  final String? feeling; // ressenti
+  final List<String> workPoints;
+  final String? nextGoal; // objectif pour le match suivant
+  final int yellowCards, redCards;
   final double? observerNote;
   final String? improvement;
   final Map<String, int> evals;
 
+  bool get planned => status == 'prevu';
+
   int eval(String key) => evals[key] ?? 3;
+
+  static String? _opt(String? s) => (s?.trim().isEmpty ?? true) ? null : s!.trim();
+
+  MatchEntry copyWith({
+    String? playedOn,
+    String? competition,
+    String? role,
+    String? status,
+    String? Function()? teams,
+    String? Function()? goal,
+    String? Function()? goalResult,
+    int? Function()? satisfaction,
+    String? Function()? feeling,
+    List<String>? workPoints,
+    String? Function()? nextGoal,
+    int? yellowCards,
+    int? redCards,
+    double? Function()? observerNote,
+    String? Function()? improvement,
+    Map<String, int>? evals,
+  }) =>
+      MatchEntry(
+        id: id,
+        playedOn: playedOn ?? this.playedOn,
+        competition: competition ?? this.competition,
+        role: role ?? this.role,
+        status: status ?? this.status,
+        teams: teams == null ? this.teams : teams(),
+        goal: goal == null ? this.goal : goal(),
+        goalResult: goalResult == null ? this.goalResult : goalResult(),
+        satisfaction: satisfaction == null ? this.satisfaction : satisfaction(),
+        feeling: feeling == null ? this.feeling : feeling(),
+        workPoints: workPoints ?? this.workPoints,
+        nextGoal: nextGoal == null ? this.nextGoal : nextGoal(),
+        yellowCards: yellowCards ?? this.yellowCards,
+        redCards: redCards ?? this.redCards,
+        observerNote: observerNote == null ? this.observerNote : observerNote(),
+        improvement: improvement == null ? this.improvement : improvement(),
+        evals: evals ?? this.evals,
+      );
 
   Map<String, dynamic> toRow() => {
         'id': id,
         'played_on': playedOn,
         'competition': competition,
         'role': role,
+        'status': status,
+        'teams': _opt(teams),
+        'goal': _opt(goal),
+        'goal_result': goalResult,
+        'satisfaction': satisfaction,
+        'feeling': _opt(feeling),
+        'work_points': workPoints,
+        'next_goal': _opt(nextGoal),
+        'yellow_cards': yellowCards,
+        'red_cards': redCards,
         'observer_note': observerNote,
-        'improvement': (improvement?.isEmpty ?? true) ? null : improvement,
+        'improvement': _opt(improvement),
         for (final (k, _) in evalCriteria) 'eval_$k': eval(k),
       };
 
@@ -219,12 +342,39 @@ class MatchEntry {
         playedOn: j['played_on'] as String,
         competition: j['competition'] as String,
         role: j['role'] as String,
+        status: (j['status'] as String?) ?? 'joue',
+        teams: j['teams'] as String?,
+        goal: j['goal'] as String?,
+        goalResult: j['goal_result'] as String?,
+        satisfaction: (j['satisfaction'] as num?)?.toInt(),
+        feeling: j['feeling'] as String?,
+        workPoints: [for (final w in (j['work_points'] as List? ?? const [])) w.toString()],
+        nextGoal: j['next_goal'] as String?,
+        yellowCards: ((j['yellow_cards'] as num?) ?? 0).toInt(),
+        redCards: ((j['red_cards'] as num?) ?? 0).toInt(),
         observerNote: (j['observer_note'] as num?)?.toDouble(),
         improvement: j['improvement'] as String?,
         evals: {
           for (final (k, _) in evalCriteria)
             if (j['eval_$k'] != null) k: (j['eval_$k'] as num).toInt(),
         },
+      );
+}
+
+/// Résultat d'un test physique saisi par l'arbitre.
+class PhysicalResult {
+  const PhysicalResult({required this.id, required this.test, required this.value, required this.doneOn, this.passed});
+  final String id, test, value, doneOn; // value : « 4,88 » (secondes) ou « 15-3 » (palier)
+  final bool? passed;
+
+  Map<String, dynamic> toRow() => {'id': id, 'test': test, 'value': value, 'done_on': doneOn, 'passed': passed};
+
+  factory PhysicalResult.fromRow(Map<String, dynamic> j) => PhysicalResult(
+        id: j['id'] as String,
+        test: j['test'] as String,
+        value: j['value'] as String,
+        doneOn: j['done_on'] as String,
+        passed: j['passed'] as bool?,
       );
 }
 
@@ -239,7 +389,11 @@ class UserData {
     List<MatchEntry>? matches,
     Set<String>? badges,
     Map<int, String>? readLessons,
+    List<PhysicalResult>? physical,
+    List<CategorySuggestion>? suggestions,
   })  : laws = laws ?? {},
+        physical = physical ?? [],
+        suggestions = suggestions ?? [],
         reviews = reviews ?? {},
         sessions = sessions ?? [],
         matches = matches ?? [],
@@ -254,12 +408,20 @@ class UserData {
   final List<MatchEntry> matches; // de la plus récente à la plus ancienne
   final Set<String> badges;
   final Map<int, String> readLessons; // loi -> date de lecture
+  final List<PhysicalResult> physical; // du plus récent au plus ancien
+  final List<CategorySuggestion> suggestions; // propositions de l'utilisateur
 
   static const maxSessions = 300;
 
   Tally law(int l) => laws[l] ?? const Tally();
 
   void sortMatches() => matches.sort((a, b) => b.playedOn.compareTo(a.playedOn));
+
+  /// Matchs prévus, du plus proche au plus lointain.
+  List<MatchEntry> get plannedMatches => matches.where((m) => m.planned).toList().reversed.toList();
+
+  /// Matchs joués, du plus récent au plus ancien.
+  List<MatchEntry> get playedMatches => matches.where((m) => !m.planned).toList();
 
   Map<String, dynamic> toJson() => {
         'v': 1,
@@ -271,6 +433,8 @@ class UserData {
         'matches': [for (final m in matches) m.toRow()],
         'badges': badges.toList(),
         'read': {for (final e in readLessons.entries) '${e.key}': e.value},
+        'physical': [for (final p in physical) p.toRow()],
+        'suggestions': [for (final x in suggestions) x.toJson()],
       };
 
   factory UserData.fromJson(Map<String, dynamic> j) => UserData(
@@ -294,6 +458,13 @@ class UserData {
         readLessons: {
           for (final e in (j['read'] as Map? ?? {}).entries) int.parse(e.key as String): e.value as String,
         },
+        physical: [
+          for (final p in (j['physical'] as List? ?? [])) PhysicalResult.fromRow(Map<String, dynamic>.from(p as Map)),
+        ],
+        suggestions: [
+          for (final x in (j['suggestions'] as List? ?? []))
+            CategorySuggestion.fromRow(Map<String, dynamic>.from(x as Map)),
+        ],
       );
 
   bool didToday(String mode) {

@@ -4,9 +4,13 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sifflet_academie/data/sync.dart';
+import 'package:sifflet_academie/logic/categories.dart';
 import 'package:sifflet_academie/logic/dates.dart';
+import 'package:sifflet_academie/logic/exam_case.dart';
 import 'package:sifflet_academie/logic/offside.dart';
+import 'package:sifflet_academie/logic/physical.dart';
 import 'package:sifflet_academie/logic/progress.dart';
+import 'package:sifflet_academie/logic/report.dart';
 import 'package:sifflet_academie/logic/selection.dart';
 import 'package:sifflet_academie/logic/srs.dart';
 import 'package:sifflet_academie/models/content.dart';
@@ -86,8 +90,8 @@ void main() {
           explanation: '',
         );
     test('un débutant reçoit surtout des questions faciles', () {
-      expect(questionWeight(q(1), level: 'jeune', role: 'central'),
-          greaterThan(questionWeight(q(3), level: 'jeune', role: 'central')));
+      expect(questionWeight(q(1), level: 'jad', role: 'central'),
+          greaterThan(questionWeight(q(3), level: 'jad', role: 'central')));
       expect(questionWeight(q(3), level: 'federal', role: 'central'),
           greaterThan(questionWeight(q(1), level: 'federal', role: 'central')));
     });
@@ -106,8 +110,9 @@ void main() {
 
   group('Progression', () {
     test('niveaux', () {
-      expect(levelFor(0).name, 'Stagiaire');
-      expect(levelFor(640).name, 'District');
+      // Paliers neutres : ils ne doivent pas ressembler à une catégorie officielle.
+      expect(levelFor(0).name, 'Palier 1');
+      expect(levelFor(640).name, 'Palier 2');
       expect(levelFor(640).next, 800);
       expect(levelFor(9999).next, isNull);
     });
@@ -185,6 +190,44 @@ void main() {
       expect(back.badges, {'first'});
       expect(back.readLessons[11], '2026-11-11');
     });
+    test('aller-retour JSON des nouveautés : profil détaillé, débriefing, physique', () {
+      final d = UserData(
+        profile: const Profile(country: 'MA', level: 'autre', customCategory: 'Arbitre Botola Pro', levelDetail: 'D1', role: 'assistant', alsoOther: true),
+        matches: [
+          const MatchEntry(
+            id: 'm',
+            playedOn: '2026-11-08',
+            competition: 'R2',
+            role: 'Arbitre assistant',
+            satisfaction: 4,
+            feeling: 'Bon match',
+            workPoints: ['Lecture du hors-jeu'],
+            nextGoal: 'Être à hauteur',
+            yellowCards: 3,
+            redCards: 1,
+            evals: {'concentration': 2},
+          ),
+          const MatchEntry(id: 'p', playedOn: '2026-11-20', competition: 'R2', role: 'Arbitre central', status: 'prevu', goal: 'Siffler tôt'),
+        ],
+        physical: [const PhysicalResult(id: 'x', test: 'coda', value: '10,31', doneOn: '2026-11-06', passed: true)],
+        suggestions: [const CategorySuggestion(id: 's', country: 'MA', kind: 'categorie', label: 'Arbitre Botola Pro')],
+      );
+      final back = UserData.fromJson(jsonDecode(jsonEncode(d.toJson())) as Map<String, dynamic>);
+      expect(back.profile.categoryLabel, 'Arbitre Botola Pro · D1');
+      expect(back.profile.alsoOther, isTrue);
+      expect(back.playedMatches.single.workPoints, ['Lecture du hors-jeu']);
+      expect(back.playedMatches.single.eval('concentration'), 2);
+      expect(back.playedMatches.single.redCards, 1);
+      expect(back.plannedMatches.single.goal, 'Siffler tôt');
+      expect(back.physical.single.passed, isTrue);
+      expect(back.suggestions.single.label, 'Arbitre Botola Pro');
+    });
+    test('les anciens profils sont convertis', () {
+      expect(Profile.fromRow({'level': 'jeune'}).level, 'jad');
+      expect(Profile.fromRow({'level': 'inconnu'}).level, 'district');
+      expect(Profile.fromRow({'level': 'federal', 'role': 'mixte'}).alsoOther, isTrue);
+      expect(const Profile(level: 'ligue', levelDetail: 'R2').categoryLabel, 'Arbitre de ligue · R2');
+    });
     test('dates', () {
       expect(isoDay(DateTime(2026, 1, 5)), '2026-01-05');
       expect(addDaysIso(1, DateTime(2026, 12, 31)), '2027-01-01');
@@ -206,6 +249,110 @@ void main() {
       }
       final lessons = jsonDecode(File('assets/content/lessons.json').readAsStringSync()) as List;
       expect(lessons.length, 17);
+    });
+  });
+
+  group('Catégories', () {
+    test('les catégories ajoutées apparaissent après les officielles, sans doublon', () {
+      const sugg = [
+        CategorySuggestion(id: '1', country: 'MA', kind: 'categorie', label: 'Arbitre Botola Pro', status: 'validee'),
+        CategorySuggestion(id: '2', country: 'MA', kind: 'categorie', label: 'arbitre botola pro'),
+        CategorySuggestion(id: '3', country: 'FR', kind: 'categorie', label: 'Arbitre futsal'),
+        CategorySuggestion(id: '4', country: 'MA', kind: 'niveau', label: 'Élite A', categoryId: 'sugg:Arbitre Botola Pro'),
+      ];
+      final ma = categoryChoices('MA', sugg);
+      expect(ma.first.id, 'ma_jeune');
+      expect(ma.where((c) => c.added).map((c) => c.name), ['Arbitre Botola Pro']);
+      expect(levelChoices('MA', customCategoryId, 'Arbitre Botola Pro', sugg), ['Élite A']);
+      expect(levelChoices('FR', 'ligue', null, sugg), contains('R2'));
+      expect(cleanLabel('  Arbitre   futsal  '), 'Arbitre futsal');
+      expect(cleanLabel('x' * 80).length, CategorySuggestion.maxLength);
+    });
+    test('la difficulté suit l’expérience de la catégorie', () {
+      expect(tierFor('jad'), Tier.beginner);
+      expect(tierFor('federal'), Tier.expert);
+      expect(tierFor('autre'), Tier.confirmed);
+    });
+  });
+
+  group('Format examen', () {
+    const q = ExamCase(id: 'e', law: 12, source: 's', situation: 's', options: ['a', 'b', 'c', 'd', 'e'], answers: {0, 2, 4}, explanation: '');
+    test('notation de l’examen : 0,25 point par élément oublié ou en trop', () {
+      expect(q.score({0, 2, 4}), 1);
+      expect(q.score({0, 2}), .75);
+      expect(q.score({0, 2, 4, 1}), .75);
+      expect(q.score({1, 3}), 0);
+    });
+    test('les cas embarqués sont valides', () {
+      final raw = jsonDecode(File('assets/content/exam_cases.json').readAsStringSync()) as List;
+      final cases = [for (final r in raw) ExamCase.fromJson(r as Map<String, dynamic>)];
+      expect(cases.length, greaterThanOrEqualTo(10));
+      expect(cases.every((c) => c.isValid), isTrue);
+      expect(cases.map((c) => c.id).toSet().length, cases.length);
+    });
+  });
+
+  group('Rapport disciplinaire', () {
+    final raw = jsonDecode(File('assets/content/report_cases.json').readAsStringSync()) as List;
+    final cases = [for (final r in raw) ReportCase.fromJson(r as Map<String, dynamic>)];
+    test('chaque rapport modèle obtient la note maximale', () {
+      for (final c in cases) {
+        expect(c.model.length, 5);
+        final f = analyseReport(c.model.join('\n'), c);
+        expect(f.parts, everyElement(isTrue), reason: c.id);
+        expect(f.score, 20, reason: c.id);
+        expect(f.personalData, isFalse, reason: 'modèle ${c.id} non anonyme');
+      }
+    });
+    test('un rapport bâclé est sous la note éliminatoire', () {
+      final f = analyseReport('Le joueur était agressif, je pense.', cases.first);
+      expect(f.score, lessThan(ReportFeedback.passMark));
+      expect(f.judgments, containsAll(['agressif', 'je pense']));
+    });
+    test('fautes sur avertir et exclure, écriture au passé', () {
+      final f = analyseReport("J'exclu le joueur. Il a frappé l'adversaire, il a été exclut.", cases.first);
+      expect(f.conjugation.length, 2);
+      expect(f.pastForms, greaterThanOrEqualTo(2));
+      expect(analyseReport("J'exclus le joueur et j’avertis le capitaine.", cases.first).conjugation, isEmpty);
+    });
+    test('anonymisation des noms et des licences', () {
+      const t = 'Exclusion de M. Karim Benali (licence 2501234567), joueur n° 5.';
+      expect(analyseReport(t, cases.first).personalData, isTrue);
+      final a = anonymiseReport(t);
+      expect(a, 'Exclusion de M. [NOM Prénom] (licence [licence]), joueur n° 5.');
+      expect(analyseReport(a, cases.first).personalData, isFalse);
+    });
+  });
+
+  group('Tests physiques', () {
+    test('tests et barèmes selon la fonction et le niveau', () {
+      final a = testsFor(const Profile(role: 'assistant', levelDetail: 'R2'));
+      expect(a.map((x) => x.$1.id), ['sprint30', 'coda', 'ariet']);
+      expect(a.first.$2.maxSeconds, 5.00);
+      expect(a.last.$2.stage, '14-8');
+      expect(testsFor(const Profile(role: 'assistant', levelDetail: 'R1')).first.$2.maxSeconds, 4.90);
+      final c = testsFor(const Profile(role: 'central', levelDetail: 'R1'));
+      expect(c.map((x) => x.$1.id), ['sds', 'sprint40']);
+      expect(c.first.$2.distance!.single, 56);
+      expect(testsFor(const Profile(role: 'central', levelDetail: 'R3')).single.$2.distance!.single, 53);
+    });
+    test('validation d’un résultat', () {
+      const t = TestThreshold('x', '5"00', maxSeconds: 5.0);
+      expect(passes(t, '4,88'), isTrue);
+      expect(passes(t, '5"00'), isTrue);
+      expect(passes(t, '5.01'), isFalse);
+      expect(passes(t, 'vite'), isNull);
+      const s = TestThreshold('x', 'Palier 14-8', stage: '14-8');
+      expect(passes(s, '15-1'), isTrue);
+      expect(passes(s, '14-8'), isTrue);
+      expect(passes(s, '14-7'), isFalse);
+      expect(passes(s, '13.5-8'), isFalse);
+    });
+    test('séance S.D.S. : 3 blocs de 5 répétitions', () {
+      final plan = sdsPlan((single: 54, half: 32));
+      expect(plan.where((x) => x.run).length, 45);
+      expect(plan.fold<int>(0, (a, x) => a + x.seconds), 3 * 5 * 76 + 2 * 60);
+      expect(plan.first.distance, '54 m');
     });
   });
 }

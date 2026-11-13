@@ -1,0 +1,215 @@
+[
+  {
+    "id": "EX-01",
+    "law": 12,
+    "source": "Examen de ligue 2012/13, mis à jour",
+    "situation": "Corner. Le ballon frappe le poteau et revient vers le tireur. Au moment où il le reprend de volée, un défenseur frappe un adversaire placé sur la ligne de but, entre les montants. Le ballon entre dans le but.",
+    "options": [
+      "But accordé",
+      "But refusé",
+      "Exclusion du défenseur pour comportement violent",
+      "Avertissement au défenseur",
+      "Penalty",
+      "Balle à terre",
+      "Coup franc indirect pour la défense",
+      "Rapport"
+    ],
+    "answers": [
+      1,
+      2,
+      4,
+      7
+    ],
+    "explanation": "Deux infractions au même moment : la deuxième touche du tireur (coup franc indirect) et le coup du défenseur. On sanctionne la plus grave. La victime est sur la ligne, donc dans la surface : penalty. Le corrigé de 2012 donnait une balle à terre."
+  },
+  {
+    "id": "EX-02",
+    "law": 12,
+    "source": "Examen de ligue 2012/13, mis à jour",
+    "situation": "Ballon en jeu. Un défenseur, hors du terrain, lance sa chaussure sur un adversaire placé dans la surface de réparation du défenseur. Il l’atteint.",
+    "options": [
+      "Arrêt du jeu",
+      "Exclusion pour comportement violent",
+      "Avertissement pour comportement antisportif",
+      "Coup franc indirect à l’endroit de la victime",
+      "Penalty",
+      "Balle à terre",
+      "Rapport"
+    ],
+    "answers": [
+      0,
+      1,
+      4,
+      6
+    ],
+    "explanation": "Objet lancé sur une personne sur le terrain : coup franc direct à l’endroit où l’objet l’atteint, donc penalty dans la surface du fautif. L’ancien corrigé (coup franc indirect) date d’avant 2016."
+  },
+  {
+    "id": "EX-03",
+    "law": 14,
+    "source": "Examen de ligue 2012/13, mis à jour",
+    "situation": "Penalty. Après le coup de sifflet, le tireur désigné passe au-dessus du ballon ; un coéquipier régulièrement placé arrive et tire à sa place. Le ballon entre dans le but.",
+    "options": [
+      "But accordé",
+      "But refusé",
+      "Avertissement au tireur désigné",
+      "Avertissement au joueur qui a tiré",
+      "Penalty à retirer",
+      "Coup franc indirect pour la défense",
+      "Rapport"
+    ],
+    "answers": [
+      1,
+      3,
+      5
+    ],
+    "explanation": "Loi 14 actuelle : seul le joueur qui a tiré est averti, et le jeu reprend par un coup franc indirect, but ou pas. Le corrigé de 2012 (deux avertissements, penalty à retirer) est périmé."
+  },
+  {
+    "id": "EX-04",
+    "law": 12,
+    "source": "Examen de ligue 2012/13, mis à jour",
+    "situation": "À 20 m du but, un défenseur stoppe irrégulièrement un attaquant qui filait seul au but. Avant que l’arbitre ait sorti un carton, la victime joue le coup franc rapidement ; un partenaire marque.",
+    "options": [
+      "But accordé",
+      "But refusé, coup franc à refaire",
+      "Exclusion du défenseur",
+      "Avertissement au défenseur au prochain arrêt",
+      "Coup d’envoi",
+      "Rapport"
+    ],
+    "answers": [
+      0,
+      3,
+      4
+    ],
+    "explanation": "Si l’équipe lésée joue vite et obtient une occasion avant que l’arbitre ait commencé la procédure disciplinaire, l’exclusion pour occasion annihilée devient un avertissement, donné au prochain arrêt. Le but est valable."
+  },
+  {
+    "id": "EX-05",
+    "law": 12,
+    "source": "Examen AAF3 2016/17, mis à jour",
+    "situation": "Un attaquant s’écroule sans contact dans la surface. Le jeu continue. Peu après, le même joueur s’écroule à nouveau juste avant d’être touché par le gardien.",
+    "options": [
+      "Penalty",
+      "Arrêt du jeu",
+      "Avertissement pour comportement antisportif (1re simulation)",
+      "Second avertissement, puis exclusion",
+      "Coup franc indirect pour la défense",
+      "Coup franc direct pour la défense",
+      "Rapport"
+    ],
+    "answers": [
+      1,
+      2,
+      3,
+      4,
+      6
+    ],
+    "explanation": "Deux simulations : deux avertissements, puis l’exclusion. Reprise : coup franc indirect à l’endroit de la seconde simulation. Rapport."
+  },
+  {
+    "id": "EX-06",
+    "law": 12,
+    "source": "Examen AAF3 2016/17, mis à jour",
+    "situation": "Le ballon est en jeu à 35 m, près de la ligne de touche. Dans sa propre surface, un défenseur frappe un attaquant, sur le terrain.",
+    "options": [
+      "Arrêt du jeu (sous réserve de l’avantage)",
+      "Exclusion pour comportement violent",
+      "Coup franc direct à l’endroit où était le ballon",
+      "Penalty",
+      "Balle à terre",
+      "Rapport"
+    ],
+    "answers": [
+      0,
+      1,
+      3,
+      5
+    ],
+    "explanation": "Faute passible d’un coup franc direct commise par un joueur dans sa propre surface, ballon en jeu : penalty, peu importe où est le ballon."
+  },
+  {
+    "id": "EX-07",
+    "law": 12,
+    "source": "Examen AAF3 2016/17, mis à jour",
+    "situation": "Depuis sa surface, le gardien lance une pierre sur un adversaire à 35 m, sur le terrain, et l’atteint dans le dos. Ballon en jeu.",
+    "options": [
+      "Exclusion du gardien",
+      "Nomination d’un nouveau gardien",
+      "Coup franc direct à l’endroit où la pierre atteint l’adversaire",
+      "Penalty",
+      "Coup franc indirect",
+      "Rapport"
+    ],
+    "answers": [
+      0,
+      1,
+      2,
+      5
+    ],
+    "explanation": "Objet lancé : coup franc direct à l’endroit où il atteint la personne (sous réserve de l’avantage). Exclusion, nouveau gardien, rapport."
+  },
+  {
+    "id": "EX-08",
+    "law": 5,
+    "source": "Règlement FFF",
+    "situation": "0-0, 88e minute. L’assistant valide un but. Un défenseur se précipite et donne un coup de poing au visage de l’assistant, qui saigne du nez.",
+    "options": [
+      "But refusé",
+      "Validation du but",
+      "Exclusion du défenseur",
+      "Reprise par coup d’envoi",
+      "Arrêt définitif de la rencontre",
+      "Rapport"
+    ],
+    "answers": [
+      1,
+      2,
+      4,
+      5
+    ],
+    "explanation": "But valable, exclusion. En France, une agression d’un officiel entraîne l’arrêt définitif du match : c’est le règlement de la FFF, pas les Lois du jeu. Rapport."
+  },
+  {
+    "id": "EX-09",
+    "law": 12,
+    "source": "Questionnaire District 77, 2022/23",
+    "situation": "Un défenseur commet une faute passible d’avertissement ; l’arbitre laisse l’avantage. Dans la même action, ce défenseur commet une seconde faute passible d’avertissement sur un autre attaquant.",
+    "options": [
+      "Arrêt du jeu",
+      "Un seul avertissement",
+      "Deux avertissements, puis exclusion",
+      "Coup franc direct à l’endroit de la 1re faute",
+      "Coup franc direct à l’endroit de la 2e faute",
+      "Rapport"
+    ],
+    "answers": [
+      0,
+      2,
+      4,
+      5
+    ],
+    "explanation": "Deux fautes passibles d’avertissement : deux cartons jaunes, montrés en désignant les deux endroits, puis le rouge. Exception : si la 1re faute était seulement de stopper une attaque prometteuse et que l’avantage a été laissé, elle n’est plus sanctionnée."
+  },
+  {
+    "id": "EX-10",
+    "law": 12,
+    "source": "Examen AAF3 2016/17, mis à jour",
+    "situation": "Coup franc direct à 23 m. Au moment du tir, un défenseur crie très fort « J’ai ! » pour gêner un attaquant. Le ballon touche la barre, le gardien l’effleure, il entre dans le but.",
+    "options": [
+      "But refusé",
+      "But accordé",
+      "Avertissement au défenseur pour comportement antisportif",
+      "Coup franc indirect pour l’attaque",
+      "Coup d’envoi",
+      "Rapport"
+    ],
+    "answers": [
+      1,
+      2,
+      4
+    ],
+    "explanation": "Distraire verbalement un adversaire : coup franc indirect et avertissement. Ici l’avantage joue, le but est accordé ; le défenseur est quand même averti."
+  }
+]

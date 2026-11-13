@@ -6,6 +6,7 @@ import '../config.dart';
 import '../models/user_data.dart';
 import '../theme.dart';
 import 'brand.dart';
+import 'category_picker.dart';
 import 'common.dart';
 
 /// Création du profil. Recueille aussi :
@@ -20,7 +21,8 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _form = GlobalKey<FormState>();
   late final TextEditingController _name, _parentEmail;
-  late String level, role, goal;
+  late RefereeIdentity identity;
+  late String goal;
   int? birthYear;
   bool parentalConsent = false;
   bool privacy = false;
@@ -32,8 +34,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final p = AppScope.read(context).profile;
     _name = TextEditingController(text: p.firstName ?? '');
     _parentEmail = TextEditingController(text: p.parentEmail ?? '');
-    level = p.level;
-    role = p.role;
+    identity = RefereeIdentity(
+      country: p.country,
+      level: p.level,
+      levelDetail: p.levelDetail,
+      customCategory: p.customCategory,
+      role: p.role == 'mixte' ? 'central' : p.role,
+      alsoOther: p.alsoOther || p.role == 'mixte',
+    );
     goal = p.goal;
     birthYear = p.birthYear;
     parentalConsent = p.parentalConsent;
@@ -62,8 +70,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final s = AppScope.read(context);
     await s.acceptPrivacyAndSave(s.profile.copyWith(
       firstName: _name.text.trim(),
-      level: level,
-      role: role,
+      country: identity.country,
+      level: identity.level,
+      levelDetail: () => identity.levelDetail,
+      customCategory: () => identity.customCategory,
+      role: identity.role,
+      alsoOther: identity.alsoOther,
       goal: goal,
       birthYear: birthYear,
       parentalConsent: minor && parentalConsent,
@@ -83,9 +95,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 460),
-              child: ListView(
+              // Pas de liste paresseuse : tous les champs doivent exister pour
+              // que la validation du formulaire les contrôle tous.
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-                children: [
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   const BrandMark(),
                   const SizedBox(height: 24),
                   Headline(
@@ -112,11 +126,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     validator: (v) => v == null ? 'Indiquez votre année de naissance.' : null,
                   ),
                   const SizedBox(height: 14),
-                  _dropdown('Niveau', level, profileLevels, (v) => level = v),
-                  const SizedBox(height: 14),
-                  _dropdown('Fonction principale', role, profileRoles, (v) => role = v),
-                  const SizedBox(height: 14),
-                  _dropdown('Objectif', goal, profileGoals, (v) => goal = v),
                   if (minor) ...[
                     const SizedBox(height: 20),
                     Panel(
@@ -149,6 +158,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ]),
                     ),
                   ],
+                  const SizedBox(height: 10),
+                  RefereeIdentityForm(value: identity, onChanged: (v) => setState(() => identity = v)),
+                  const SizedBox(height: 14),
+                  _dropdown('Objectif', goal, profileGoals, (v) => goal = v),
                   const SizedBox(height: 14),
                   CheckboxListTile(
                     contentPadding: EdgeInsets.zero,
@@ -177,7 +190,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     'vos données à tout moment depuis votre profil.',
                     style: TextStyle(fontSize: 13, color: c.muted),
                   ),
-                ],
+                ]),
               ),
             ),
           ),

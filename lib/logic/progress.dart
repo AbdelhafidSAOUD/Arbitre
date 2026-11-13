@@ -10,13 +10,16 @@ class LevelInfo {
   double progress(int xp) => next == null ? 1 : ((xp - min) / (next! - min)).clamp(0, 1).toDouble();
 }
 
+/// Paliers d'entraînement, gagnés avec les points (XP) de l'application.
+/// Ils mesurent le travail fourni ici et ne disent rien de la catégorie
+/// officielle de l'arbitre : d'où des noms neutres (« Palier 1 »…).
 const _levels = <(int, String)>[
-  (0, 'Stagiaire'),
-  (300, 'District'),
-  (800, 'Ligue'),
-  (1600, 'Régional'),
-  (3000, 'Fédéral'),
-  (5000, 'Élite'),
+  (0, 'Palier 1'),
+  (300, 'Palier 2'),
+  (800, 'Palier 3'),
+  (1600, 'Palier 4'),
+  (3000, 'Palier 5'),
+  (5000, 'Palier 6'),
 ];
 
 LevelInfo levelFor(int xp) {
@@ -45,7 +48,7 @@ final badgeDefs = <BadgeDef>[
   BadgeDef('all17', 'Tour complet', 'Avoir travaillé les 17 lois',
       (d) => List.generate(17, (i) => i + 1).every((l) => d.law(l).total > 0)),
   BadgeDef('exam', 'Reçu', 'Réussir un examen blanc', (d) => d.sessions.any((s) => s.isExam && (s.passed ?? false))),
-  BadgeDef('carnet', 'Carnet tenu', '5 matchs au carnet', (d) => d.matches.length >= 5),
+  BadgeDef('carnet', 'Carnet tenu', '5 matchs au carnet', (d) => d.playedMatches.length >= 5),
 ];
 
 /// Ajoute les badges nouvellement mérités et les renvoie.

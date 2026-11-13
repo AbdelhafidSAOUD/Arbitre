@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 
+import '../logic/exam_case.dart';
+import '../logic/report.dart';
 import '../models/content.dart';
 import 'local_store.dart';
 
@@ -18,7 +20,15 @@ class ContentRepository {
   List<Question> questions = [];
   Map<int, Lesson> lessons = {};
 
+  /// Cas au format examen et cas de rapport : livrés avec l'application.
+  List<ExamCase> examCases = [];
+  List<ReportCase> reportCases = [];
+
   Future<void> load() async {
+    final ex = jsonDecode(await _bundle.loadString('assets/content/exam_cases.json')) as List;
+    final rc = jsonDecode(await _bundle.loadString('assets/content/report_cases.json')) as List;
+    examCases = [for (final r in ex) ExamCase.fromJson(Map<String, dynamic>.from(r as Map))].where((c) => c.isValid).toList();
+    reportCases = [for (final r in rc) ReportCase.fromJson(Map<String, dynamic>.from(r as Map))];
     final cached = _store.loadContentCache();
     if (cached != null && cached.questions.isNotEmpty) {
       _set(cached.questions, cached.lessons);

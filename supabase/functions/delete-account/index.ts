@@ -3,7 +3,9 @@
 //
 // L'utilisateur est identifié par son jeton de connexion (JWT) : il ne peut
 // supprimer que son propre compte. Toutes ses données (profil, réponses,
-// révisions, séances, matchs, badges) sont effacées en cascade.
+// révisions, séances, matchs, tests physiques, badges) sont effacées en
+// cascade. Ses propositions de catégories, sans donnée personnelle, restent
+// disponibles mais ne sont plus liées à son compte.
 //
 // Déploiement : supabase functions deploy delete-account
 import { createClient } from "jsr:@supabase/supabase-js@2";

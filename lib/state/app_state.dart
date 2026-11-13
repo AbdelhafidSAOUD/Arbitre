@@ -10,6 +10,7 @@ import '../data/content_repository.dart';
 import '../data/local_store.dart';
 import '../data/remote.dart';
 import '../data/sync.dart';
+import '../logic/categories.dart';
 import '../logic/dates.dart';
 import '../logic/offside.dart';
 import '../logic/progress.dart';
@@ -48,6 +49,8 @@ class AppState extends ChangeNotifier {
   List<SyncOp> _queue = [];
   bool ready = false;
   bool syncing = false;
+  /// Catégories et niveaux ajoutés par des arbitres et validés.
+  List<CategorySuggestion> sharedSuggestions = [];
   String? syncError;
   DateTime? lastSyncAt;
   StreamSubscription<String?>? _authSub;
@@ -66,6 +69,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> init() async {
     await content.load();
+    sharedSuggestions = store.loadSharedSuggestions();
     final r = remote;
     if (r == null) {
       await _openUser(localUserId);
@@ -149,6 +153,8 @@ class AppState extends ChangeNotifier {
       if (pull && _queue.isEmpty) {
         final fresh = await r.fetchContent();
         await content.replace(fresh.questions, fresh.lessons);
+        sharedSuggestions = fresh.suggestions;
+        await store.saveSharedSuggestions(sharedSuggestions);
         final remoteData = await r.fetchUserData(uid);
         if (_uid != uid) return;
         if (remoteData != null) {
@@ -384,7 +390,17 @@ class AppState extends ChangeNotifier {
     final correct = items.where((i) => i.correct).length;
     final total = items.length;
     final passed = c.exam ? correct / total >= AppConfig.examPassRatio : null;
-    final xp = sessionXp(correct: correct, total: total, timed: c.timed, examPassed: passed ?? false);
+    return _closeSession(c.label, correct, total, timed: c.timed, exam: c.exam, passed: passed);
+  }
+
+  /// Séance notée hors quiz (format examen, rapport disciplinaire) :
+  /// [correct] sur [total] points.
+  SessionOutcome recordScoredSession(String label, int correct, int total) =>
+      _closeSession(label, correct, total);
+
+  SessionOutcome _closeSession(String label, int correct, int total,
+      {bool timed = false, bool exam = false, bool? passed}) {
+    final xp = sessionXp(correct: correct, total: total, timed: timed, examPassed: passed ?? false);
     final today = todayIso();
     _data.profile = profile.copyWith(
       xp: profile.xp + xp,
@@ -398,10 +414,10 @@ class AppState extends ChangeNotifier {
     );
     final session = SessionRecord(
       id: _uuid.v4(),
-      mode: c.label,
+      mode: label,
       correct: correct,
       total: total,
-      isExam: c.exam,
+      isExam: exam,
       passed: passed,
       playedOn: today,
     );
@@ -421,7 +437,7 @@ class AppState extends ChangeNotifier {
       xp: xp,
       totalXp: profile.xp,
       newBadges: fresh,
-      exam: c.exam,
+      exam: exam,
       passed: passed,
     );
   }
@@ -450,6 +466,55 @@ class AppState extends ChangeNotifier {
     return fresh;
   }
 
+  // ============================================= Catégories proposées
+
+  /// Propositions visibles : validées (tous les arbitres) et les siennes.
+  List<CategorySuggestion> get allSuggestions => [...sharedSuggestions, ..._data.suggestions];
+
+  /// Enregistre la proposition d'une catégorie ou d'un niveau. Elle sera
+  /// visible des autres arbitres une fois validée.
+  void proposeCategory({required String country, required String kind, required String label, String? categoryId}) {
+    final clean = cleanLabel(label);
+    if (clean.isEmpty) return;
+    final exists = allSuggestions.any((x) =>
+        x.country == country && x.kind == kind && x.categoryId == categoryId && x.label.toLowerCase() == clean.toLowerCase());
+    if (exists) return;
+    final sugg = CategorySuggestion(id: _uuid.v4(), country: country, kind: kind, label: clean, categoryId: categoryId);
+    _data.suggestions.add(sugg);
+    _enqueue(SyncOp.upsert('category_suggestions', sugg.toRow(), ignoreDuplicates: true));
+    notifyListeners();
+    _persist();
+  }
+
+  // ======================================================= Tests physiques
+
+  void savePhysical(PhysicalResult r) {
+    _data.physical
+      ..removeWhere((x) => x.id == r.id)
+      ..insert(0, r)
+      ..sort((a, b) => b.doneOn.compareTo(a.doneOn));
+    _enqueue(SyncOp.upsert('physical_results', r.toRow()));
+    notifyListeners();
+    _persist();
+  }
+
+  void deletePhysical(String id) {
+    _data.physical.removeWhere((x) => x.id == id);
+    _enqueue(SyncOp.delete('physical_results', {'id': id}));
+    notifyListeners();
+    _persist();
+  }
+
+  // ================================================ Brouillons de rapports
+
+  /// Brouillon gardé sur l'appareil uniquement (jamais envoyé au serveur).
+  String reportDraft(String caseId) => _uid == null ? '' : store.loadDraft(_uid!, caseId);
+
+  Future<void> saveReportDraft(String caseId, String text) async {
+    if (_uid == null) return;
+    await store.saveDraft(_uid!, caseId, text);
+  }
+
   void deleteMatch(String id) {
     _data.matches.removeWhere((x) => x.id == id);
     _enqueue(SyncOp.delete('matches', {'id': id}));
@@ -468,4 +533,6 @@ abstract final class Labels {
   static const weak = 'Révision ciblée';
   static const review = 'Révisions espacées';
   static const classroom = 'Séance en salle';
+  static const examCases = 'Format examen';
+  static const report = 'Rapport disciplinaire';
 }

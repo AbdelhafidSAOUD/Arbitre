@@ -13,27 +13,16 @@ class BrandMark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.sc;
-    final cards = SizedBox(
-      width: size,
-      height: size,
-      child: Stack(children: [
-        Positioned(
-          left: size * .2,
-          top: size * .1,
-          child: Transform.rotate(
-            angle: -10 * pi / 180,
-            child: Container(width: size * .42, height: size * .58, decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(size * .08))),
-          ),
-        ),
-        Positioned(
-          left: size * .38,
-          top: size * .26,
-          child: Transform.rotate(
-            angle: 8 * pi / 180,
-            child: Container(width: size * .42, height: size * .58, decoration: BoxDecoration(color: c.red, borderRadius: BorderRadius.circular(size * .08))),
-          ),
-        ),
-      ]),
+    // Trois cartons qui montent : l'arbitrage et la progression.
+    final cards = Semantics(
+      label: 'Sifflet Académie',
+      excludeSemantics: true,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(color: const Color(0xFF13203A), borderRadius: BorderRadius.circular(size * .22)),
+        child: CustomPaint(painter: _LogoPainter(c.card, c.red)),
+      ),
     );
     if (!showName) return cards;
     return Row(mainAxisSize: MainAxisSize.min, children: [
@@ -55,4 +44,23 @@ class BrandMark extends StatelessWidget {
       ),
     ]);
   }
+}
+
+class _LogoPainter extends CustomPainter {
+  _LogoPainter(this.yellow, this.red);
+  final Color yellow, red;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final u = size.width / 100;
+    RRect card(double x, double y, double w, double h) =>
+        RRect.fromRectAndRadius(Rect.fromLTWH(x * u, y * u, w * u, h * u), Radius.circular(3.5 * u));
+    canvas.drawRRect(card(16, 52, 20, 28), Paint()..color = yellow.withValues(alpha: .55));
+    canvas.drawRRect(card(40, 38, 20, 42), Paint()..color = yellow);
+    canvas.drawRRect(card(64, 20, 20, 60), Paint()..color = red);
+    canvas.drawRRect(card(12, 84, 76, 4), Paint()..color = const Color(0xFF2F8D56));
+  }
+
+  @override
+  bool shouldRepaint(covariant _LogoPainter old) => old.yellow != yellow || old.red != red;
 }

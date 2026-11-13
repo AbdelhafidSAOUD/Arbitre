@@ -7,9 +7,10 @@ import 'brand.dart';
 import 'common.dart';
 import 'home_tab.dart';
 import 'learn_tab.dart';
+import 'matches_tab.dart';
 import 'onboarding_screen.dart';
+import 'physical_tab.dart';
 import 'profile_screen.dart';
-import 'track_tab.dart';
 import 'training_tab.dart';
 
 class SiffletApp extends StatelessWidget {
@@ -75,7 +76,6 @@ class _ShellState extends State<Shell> {
 
   @override
   Widget build(BuildContext context) {
-    final s = AppScope.of(context);
     final c = context.sc;
     return Scaffold(
       appBar: AppBar(
@@ -91,9 +91,8 @@ class _ShellState extends State<Shell> {
                 backgroundColor: c.surface,
                 side: BorderSide(color: c.line),
                 shape: const StadiumBorder(),
-                avatar: Container(width: 9, height: 12, decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(2))),
-                label: Text('${s.level.name.toUpperCase()} · ${s.profile.xp} XP',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: .5, color: c.ink)),
+                avatar: Icon(Icons.person_outline, size: 18, color: c.ink),
+                label: Text('Profil', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: c.ink)),
               ),
             ),
           ),
@@ -104,7 +103,7 @@ class _ShellState extends State<Shell> {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 560),
-            child: IndexedStack(index: tab, children: const [HomeTab(), TrainingTab(), LearnTab(), TrackTab()]),
+            child: IndexedStack(index: tab, children: const [HomeTab(), TrainingTab(), LearnTab(), MatchesTab(), PhysicalTab()]),
           ),
         ),
       ),
@@ -113,9 +112,10 @@ class _ShellState extends State<Shell> {
         onDestinationSelected: (i) => setState(() => tab = i),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Accueil'),
-          NavigationDestination(icon: Icon(Icons.quiz_outlined), selectedIcon: Icon(Icons.quiz), label: 'S’entraîner'),
+          NavigationDestination(icon: Icon(Icons.quiz_outlined), selectedIcon: Icon(Icons.quiz), label: 'Entraîner'),
           NavigationDestination(icon: Icon(Icons.menu_book_outlined), selectedIcon: Icon(Icons.menu_book), label: 'Formation'),
-          NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Suivi'),
+          NavigationDestination(icon: Icon(Icons.event_note_outlined), selectedIcon: Icon(Icons.event_note), label: 'Matchs'),
+          NavigationDestination(icon: Icon(Icons.directions_run_outlined), selectedIcon: Icon(Icons.directions_run), label: 'Physique'),
         ],
       ),
     );

@@ -7,6 +7,7 @@ import 'package:sifflet_academie/data/content_repository.dart';
 import 'package:sifflet_academie/data/local_store.dart';
 import 'package:sifflet_academie/state/app_state.dart';
 import 'package:sifflet_academie/ui/app.dart';
+import 'package:sifflet_academie/ui/report_screen.dart';
 
 /// Parcours complet en mode local : création du profil, quiz, résultat,
 /// formation, carnet de match, profil.
@@ -27,7 +28,16 @@ void main() {
   /// Fait défiler jusqu'à l'élément puis appuie dessus.
   Future<void> tapIt(WidgetTester tester, Finder f) async {
     if (f.evaluate().isEmpty) {
-      await tester.scrollUntilVisible(f, 200, scrollable: find.byType(Scrollable).first);
+      // Défile dans l'écran au premier plan (la dernière liste verticale).
+      // (les champs de texte sur plusieurs lignes ont aussi leur Scrollable)
+      final lists = find.descendant(of: find.byType(ListView).last, matching: find.byType(Scrollable)).first;
+      // Parcourt la page de haut en bas sans glisser du doigt : un glissement
+      // pourrait tomber sur un champ de texte qui défile pour son compte.
+      final pos = tester.state<ScrollableState>(lists).position;
+      for (var y = 0.0; f.evaluate().isEmpty && y <= pos.maxScrollExtent + 300; y += 300) {
+        pos.jumpTo(y.clamp(0, pos.maxScrollExtent));
+        await tester.pump();
+      }
     }
     await tester.ensureVisible(f.first);
     await tester.pumpAndSettle();
@@ -45,6 +55,8 @@ void main() {
   }
 
   Future<void> onboard(WidgetTester tester) async {
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, 5000));
+    await tester.pumpAndSettle();
     expect(find.text('VOTRE PROFIL D’ARBITRE'), findsOneWidget);
     await pickYear(tester, '2005');
     await tapIt(tester, find.textContaining('J’ai lu et j’accepte'));
@@ -65,6 +77,8 @@ void main() {
     expect(find.text('Accord parental'), findsOneWidget);
     await tapIt(tester, find.textContaining('J’ai lu et j’accepte'));
     await tapIt(tester, find.text('Commencer'));
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, 5000));
+    await tester.pumpAndSettle();
     expect(find.text('Indiquez l’e-mail d’un parent ou tuteur.'), findsOneWidget);
     expect(state.needsOnboarding, isTrue);
   });
@@ -73,7 +87,7 @@ void main() {
     final state = await boot(tester);
     await onboard(tester);
     expect(state.needsOnboarding, isFalse);
-    expect(find.text('ARBITRE STAGIAIRE'), findsOneWidget);
+    expect(find.text('ARBITRE DE DISTRICT'), findsOneWidget);
     expect(find.text('PROGRAMME DU JOUR'), findsOneWidget);
 
     // Quiz rapide : on répond toujours A.
@@ -100,18 +114,79 @@ void main() {
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
 
-    // Carnet de match.
-    await tester.tap(find.text('Suivi'));
+    // Match à venir avec un objectif, puis débriefing.
+    await tester.tap(find.text('Matchs'));
     await tester.pumpAndSettle();
-    await tapIt(tester, find.text('Ajouter un match'));
+    await tapIt(tester, find.text('Ajouter'));
     await tester.enterText(find.widgetWithText(TextFormField, 'Compétition'), 'U19 Régional 1');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Note de l’observateur (sur 20, facultatif)'), '25');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Mon objectif pour ce match'), 'Siffler tôt');
     await tapIt(tester, find.text('Enregistrer le match'));
+    expect(state.data.plannedMatches.single.goal, 'Siffler tôt');
+    expect(find.text('Objectif : '), findsNothing); // affiché en texte enrichi
+    await tapIt(tester, find.text('Match joué : débriefer'));
+    await tapIt(tester, find.text('Enregistrer le débriefing'));
+    expect(find.text('Indiquez au moins votre satisfaction globale.'), findsOneWidget);
+    await tapIt(tester, find.text('Satisfait'));
+    await tapIt(tester, find.text('Timing des cartons'));
+    await tester.enterText(find.widgetWithText(TextFormField, 'Note de l’observateur (sur 20, facultatif)'), '25');
+    await tapIt(tester, find.text('Enregistrer le débriefing'));
     expect(find.text('La note doit être un nombre entre 0 et 20.'), findsOneWidget);
     await tester.enterText(find.widgetWithText(TextFormField, 'Note de l’observateur (sur 20, facultatif)'), '14,5');
-    await tapIt(tester, find.text('Enregistrer le match'));
-    expect(state.data.matches.single.observerNote, 14.5);
-    expect(find.text('Auto-évaluation'), findsOneWidget);
+    await tapIt(tester, find.text('Enregistrer le débriefing'));
+    final m = state.data.matches.single;
+    expect(m.planned, isFalse);
+    expect(m.satisfaction, 4);
+    expect(m.workPoints, ['Timing des cartons']);
+    expect(m.observerNote, 14.5);
+
+    // Physique : les tests de l'arbitre central.
+    await tester.tap(find.text('Physique'));
+    await tester.pumpAndSettle();
+    expect(find.text('S.D.S. (simple, double, simple)'), findsWidgets);
+  });
+
+  testWidgets('profil : catégorie ajoutée par l’arbitre', (tester) async {
+    final state = await boot(tester);
+    await tapIt(tester, find.text('Maroc'));
+    await tapIt(tester, find.text('Ma catégorie n’est pas dans la liste'));
+    await tester.enterText(find.widgetWithText(TextField, 'Nom de la catégorie'), 'Arbitre Botola Pro');
+    await tester.tap(find.text('Ajouter'));
+    await tester.pumpAndSettle();
+    await tapIt(tester, find.text('Arbitre assistant'));
+    await onboard(tester);
+    expect(state.profile.country, 'MA');
+    expect(state.profile.level, 'autre');
+    expect(state.profile.customCategory, 'Arbitre Botola Pro');
+    expect(state.profile.isAssistant, isTrue);
+    expect(state.data.suggestions.single.label, 'Arbitre Botola Pro');
+    expect(find.text('ARBITRE BOTOLA PRO'), findsOneWidget);
+  });
+
+  testWidgets('format examen et atelier rapport', (tester) async {
+    final state = await boot(tester);
+    await onboard(tester);
+    await tester.tap(find.text('Entraîner'));
+    await tester.pumpAndSettle();
+    await tapIt(tester, find.text('FORMAT EXAMEN'));
+    for (var i = 0; i < 5; i++) {
+      await tapIt(tester, find.text('Rapport'));
+      await tapIt(tester, find.text('Valider mes décisions'));
+      await tapIt(tester, find.text(i < 4 ? 'Cas suivant' : 'Voir ma note'));
+    }
+    expect(state.data.sessions.last.mode, Labels.examCases);
+    expect(state.data.sessions.last.total, 20);
+    await tapIt(tester, find.text('Terminer'));
+
+    await tapIt(tester, find.text('RAPPORT DISCIPLINAIRE'));
+    final model = state.content.reportCases.first.model.join('\n');
+    final field = find.widgetWithText(TextField, 'Votre rapport');
+    await tester.scrollUntilVisible(field, 200,
+        scrollable: find.descendant(of: find.byType(ReportScreen), matching: find.byType(Scrollable)).first);
+    await tester.enterText(field, model);
+    await tester.pumpAndSettle();
+    await tapIt(tester, find.text('Corriger mon rapport'));
+    expect(state.data.sessions.last.mode, Labels.report);
+    expect(state.data.sessions.last.correct, 20); // le modèle obtient 20/20
   });
 
   testWidgets('examen blanc : pas de correction avant la fin', (tester) async {

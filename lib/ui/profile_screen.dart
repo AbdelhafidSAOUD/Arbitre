@@ -3,9 +3,12 @@ import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../config.dart';
+import '../state/app_state.dart';
 import '../models/user_data.dart';
 import '../theme.dart';
+import 'category_picker.dart';
 import 'common.dart';
+import 'progress_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,7 +18,8 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late final TextEditingController _name;
-  late String level, role, goal;
+  late RefereeIdentity identity;
+  late String goal;
   late bool largeText;
 
   @override
@@ -23,8 +27,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     final p = AppScope.read(context).profile;
     _name = TextEditingController(text: p.firstName ?? '');
-    level = p.level;
-    role = p.role;
+    identity = RefereeIdentity(
+      country: p.country,
+      level: p.level,
+      levelDetail: p.levelDetail,
+      customCategory: p.customCategory,
+      role: p.role == 'mixte' ? 'central' : p.role,
+      alsoOther: p.alsoOther || p.role == 'mixte',
+    );
     goal = p.goal;
     largeText = p.largeText;
   }
@@ -37,7 +47,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _save() async {
     final s = AppScope.read(context);
-    await s.saveProfile(s.profile.copyWith(firstName: _name.text.trim(), level: level, role: role, goal: goal, largeText: largeText));
+    await s.saveProfile(s.profile.copyWith(
+      firstName: _name.text.trim(),
+      country: identity.country,
+      level: identity.level,
+      levelDetail: () => identity.levelDetail,
+      customCategory: () => identity.customCategory,
+      role: identity.role,
+      alsoOther: identity.alsoOther,
+      goal: goal,
+      largeText: largeText,
+    ));
     if (mounted) showMessage(context, 'Profil enregistré : programme du jour mis à jour');
   }
 
@@ -74,7 +94,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         builder: (ctx, setD) => AlertDialog(
           title: const Text('Supprimer définitivement mon compte ?'),
           content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Votre profil, vos réponses, vos révisions, vos séances, vos matchs et vos badges seront effacés. '
+            const Text('Votre profil, vos réponses, vos révisions, vos séances, vos matchs, vos tests physiques et vos badges seront effacés. '
                 'Cette action est irréversible.'),
             const SizedBox(height: 12),
             TextField(
@@ -138,13 +158,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Mon profil')),
       body: PageList(children: [
-        const Headline(eyebrow: 'Profil', title: 'Mon profil d’arbitre'),
-        const SizedBox(height: 16),
+        _IdentityCard(s: s),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProgressScreen())),
+          icon: const Icon(Icons.insights),
+          label: const Text('Ma progression détaillée'),
+        ),
+        const SectionTitle('Modifier mon profil'),
         TextField(controller: _name, maxLength: 30, decoration: const InputDecoration(labelText: 'Prénom (facultatif)')),
         const SizedBox(height: 6),
-        _dropdown('Niveau', level, profileLevels, (v) => level = v),
-        const SizedBox(height: 14),
-        _dropdown('Fonction principale', role, profileRoles, (v) => role = v),
+        RefereeIdentityForm(value: identity, onChanged: (v) => setState(() => identity = v)),
         const SizedBox(height: 14),
         _dropdown('Objectif', goal, profileGoals, (v) => goal = v),
         SwitchListTile(
@@ -232,4 +256,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
         items: [for (final e in options.entries) DropdownMenuItem(value: e.key, child: Text(e.value))],
         onChanged: (v) => setState(() => set(v ?? value)),
       );
+}
+
+/// Carte d'identité de l'arbitre : catégorie officielle, fonction, palier.
+class _IdentityCard extends StatelessWidget {
+  const _IdentityCard({required this.s});
+  final AppState s;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.sc;
+    final p = s.profile;
+    final lv = s.level;
+    final tag = BoxDecoration(color: c.onNavy.withValues(alpha: .14), borderRadius: BorderRadius.circular(99));
+    Widget pill(String t) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+          decoration: tag,
+          child: Text(t, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: c.onNavy)),
+        );
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: c.navy, borderRadius: BorderRadius.circular(18)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('CATÉGORIE OFFICIELLE (DÉCLARÉE)',
+            style: TextStyle(fontSize: 11.5, letterSpacing: 1.2, fontWeight: FontWeight.w700, color: c.onNavy.withValues(alpha: .75))),
+        const SizedBox(height: 4),
+        Text(p.categoryLabel,
+            style: TextStyle(fontFamily: kDisplay, fontSize: 26, fontWeight: FontWeight.w800, color: c.onNavy, height: 1.1)),
+        const SizedBox(height: 10),
+        Wrap(spacing: 6, runSpacing: 6, children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+            decoration: BoxDecoration(color: c.card, borderRadius: BorderRadius.circular(99)),
+            child: Text(p.isAssistant ? 'Arbitre assistant' : 'Arbitre central',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: c.onCard)),
+          ),
+          if (p.alsoOther) pill(p.isAssistant ? 'Aussi central' : 'Aussi assistant'),
+          pill(p.country == 'MA' ? 'Maroc' : 'France'),
+        ]),
+        const SizedBox(height: 14),
+        Row(children: [
+          Expanded(
+            child: Text('${lv.name} d’entraînement · ${p.xp} XP',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.onNavy)),
+          ),
+          if (lv.next != null)
+            Text('${lv.next! - p.xp} XP avant ${lv.nextName}', style: TextStyle(fontSize: 12, color: c.onNavy.withValues(alpha: .75))),
+        ]),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(99),
+          child: LinearProgressIndicator(
+            value: lv.progress(p.xp),
+            minHeight: 7,
+            backgroundColor: c.onNavy.withValues(alpha: .18),
+            color: c.card,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text('Le palier mesure votre travail dans l’application. Il ne change jamais votre catégorie officielle.',
+            style: TextStyle(fontSize: 12, color: c.onNavy.withValues(alpha: .75))),
+      ]),
+    );
+  }
 }

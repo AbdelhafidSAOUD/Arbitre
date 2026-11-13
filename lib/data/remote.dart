@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../logic/categories.dart';
 import '../logic/srs.dart';
 import '../models/content.dart';
 import '../models/user_data.dart';
@@ -51,12 +52,15 @@ class Remote {
 
   // ---------------------------------------------------------------- Contenu
 
-  Future<({List<Question> questions, List<Lesson> lessons})> fetchContent() async {
+  Future<({List<Question> questions, List<Lesson> lessons, List<CategorySuggestion> suggestions})>
+      fetchContent() async {
     final q = await client.from('questions').select().eq('active', true);
     final l = await client.from('lessons').select();
+    final c = await client.from('category_suggestions').select().eq('status', 'validee');
     return (
       questions: [for (final row in q) Question.fromJson(row)].where((x) => x.isValid).toList(),
       lessons: [for (final row in l) Lesson.fromJson(row)],
+      suggestions: [for (final row in c) CategorySuggestion.fromRow(row)],
     );
   }
 
@@ -75,6 +79,8 @@ class Remote {
       client.from('sessions').select().order('created_at', ascending: false).limit(UserData.maxSessions),
       client.from('matches').select().order('played_on', ascending: false),
       client.from('badges').select('badge_id'),
+      client.from('physical_results').select().order('done_on', ascending: false),
+      client.from('category_suggestions').select().eq('user_id', uid),
     ]);
     final offsideRows = results[1];
     final data = UserData(
@@ -92,6 +98,8 @@ class Remote {
       sessions: [for (final r in results[3].reversed) SessionRecord.fromRow(r)],
       matches: [for (final r in results[4]) MatchEntry.fromRow(r)],
       badges: {for (final r in results[5]) r['badge_id'] as String},
+      physical: [for (final r in results[6]) PhysicalResult.fromRow(r)],
+      suggestions: [for (final r in results[7]) CategorySuggestion.fromRow(r)],
     );
     return data;
   }

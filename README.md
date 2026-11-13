@@ -8,16 +8,20 @@ examen blanc et suivi de progression.
 
 | Domaine | Ce que fait l'application |
 |---|---|
-| Profil | Niveau (débutant → fédéral, formateur), fonction (central, assistant), objectif. Tout le contenu s'adapte. |
+| Profil | Pays (France, Maroc), catégorie officielle (JAD, JAL, JAF, district, ligue, régional, fédéral, formateur, observateur) et niveau précis (R2, F4…), fonction principale (central ou assistant), objectif. L'arbitre peut ajouter sa catégorie ou son niveau ; après validation, ils sont proposés aux autres. Le palier d'entraînement (XP) est distinct de la catégorie officielle. |
 | Programme du jour | 3 à 4 tâches calculées selon l'objectif et les points faibles, cochées automatiquement. |
-| Quiz | 57 questions (situations de match et connaissances), difficulté 1 à 3, explication et loi de référence après chaque réponse. |
+| Quiz | 92 questions (situations de match et connaissances), difficulté 1 à 3, explication et loi de référence après chaque réponse. Une partie vient d'examens de ligue et fédéraux, mis à jour aux Lois 2025/26. |
+| Format examen | 10 cas où l'on coche toutes les décisions (arrêt, sanction et motif, reprise, rapport), notés comme à l'examen : 0,25 point par élément oublié ou en trop. |
+| Rapport disciplinaire | Atelier de rédaction selon la méthode de la DTA (plan en 5 temps, CQQCOQP, présent) : note indicative sur 20, conseils, rapport modèle annoté, anonymisation des noms. |
 | Simulateur de hors-jeu | Situations générées à l'infini sur un terrain à l'échelle ; correction avec la ligne de l'avant-dernier défenseur. |
 | Mode match | 15 secondes par décision. |
 | Examen blanc | 30 questions en 20 minutes, correction à la fin, seuil de 80 %. |
 | Révisions espacées | Une erreur revient le lendemain, puis à 2, 4, 8 et 16 jours. |
 | Séance en salle | Pour les formateurs : projeter une question, faire voter, révéler. |
 | Formation | Fiches des 17 lois réparties en 5 parcours, validation à 75 %. |
-| Suivi | Maîtrise par loi, examens, carnet de matchs, auto-évaluation en radar, courbe des notes d'observateur, badges. |
+| Matchs | Matchs à venir avec un objectif ; débriefing après le match (satisfaction, ressenti, notes sur 6 critères, cartons, points à travailler, objectif suivant) ; courbe de satisfaction et exercices liés aux points faibles. |
+| Physique | Tests 2025/26 de la CRA selon la fonction et le niveau (sprint 40 m, S.D.S., sprint 30 m, C.O.D.A., A.R.I.E.T.), schémas, séance S.D.S. guidée au chrono, journal des résultats. |
+| Progression | Maîtrise par loi, examens, notes aux cas d'examen et aux rapports, badges (depuis le profil). |
 | Données personnelles | Consentement versionné, accord parental sous 15 ans, export, suppression du compte. |
 | Hors ligne | Tout fonctionne sans réseau ; synchronisation automatique au retour de la connexion. |
 

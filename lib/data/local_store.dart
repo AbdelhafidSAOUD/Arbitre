@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../logic/categories.dart';
 import '../models/content.dart';
 import '../models/user_data.dart';
 import 'sync.dart';
@@ -51,7 +52,34 @@ class LocalStore {
   Future<void> deleteUser(String uid) async {
     await _prefs.remove(_userKey(uid));
     await _prefs.remove(_queueKey(uid));
+    for (final k in _prefs.getKeys().where((k) => k.startsWith(_draftPrefix(uid))).toList()) {
+      await _prefs.remove(k);
+    }
   }
+
+  String _draftPrefix(String uid) => 'report_draft_v1_${uid}_';
+
+  String loadDraft(String uid, String caseId) => _prefs.getString('${_draftPrefix(uid)}$caseId') ?? '';
+
+  Future<void> saveDraft(String uid, String caseId, String text) => text.isEmpty
+      ? _prefs.remove('${_draftPrefix(uid)}$caseId')
+      : _prefs.setString('${_draftPrefix(uid)}$caseId', text);
+
+  static const _sharedKey = 'shared_categories_v1';
+
+  List<CategorySuggestion> loadSharedSuggestions() {
+    final raw = _prefs.getString(_sharedKey);
+    if (raw == null) return [];
+    try {
+      return [for (final x in jsonDecode(raw) as List) CategorySuggestion.fromRow(Map<String, dynamic>.from(x as Map))];
+    } catch (e) {
+      debugPrint('Catégories partagées illisibles, ignorées : $e');
+      return [];
+    }
+  }
+
+  Future<void> saveSharedSuggestions(List<CategorySuggestion> list) =>
+      _prefs.setString(_sharedKey, jsonEncode([for (final x in list) x.toJson()]));
 
   ({List<Question> questions, List<Lesson> lessons})? loadContentCache() {
     final raw = _prefs.getString(_contentKey);
