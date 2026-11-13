@@ -17,10 +17,13 @@ Supabase est facultative.
 
 1. Menu **SQL Editor** → **New query**.
 2. Collez le contenu de `supabase/migrations/20261111000000_schema_initial.sql`, puis **Run**.
-3. Nouvelle requête : collez `supabase/seed.sql`, puis **Run** (57 questions, 17 fiches).
-4. Menu **Table Editor** : vérifiez que les tables `profiles`, `questions`, `answers`,
-   `reviews`, `sessions`, `matches`, `badges` et `lessons` existent, chacune avec
-   le badge « RLS enabled ».
+3. Nouvelle requête : collez `supabase/migrations/20261113000000_v2_profil_matchs_physique.sql`,
+   puis **Run** (profil détaillé, catégories proposées, débriefings, tests physiques).
+   Exécutez toujours les migrations dans l'ordre de leur date.
+4. Nouvelle requête : collez `supabase/seed.sql`, puis **Run** (92 questions, 17 fiches).
+5. Menu **Table Editor** : vérifiez que les tables `profiles`, `questions`, `answers`,
+   `reviews`, `sessions`, `matches`, `badges`, `lessons`, `category_suggestions` et
+   `physical_results` existent, chacune avec le badge « RLS enabled ».
 
 Avec la ligne de commande Supabase, l'équivalent est :
 
@@ -103,6 +106,24 @@ insert into public.admins (user_id) values ('UUID-DE-L-UTILISATEUR');
 
 Les membres de l'équipe peuvent aussi modifier la table `questions` directement
 dans le **Table Editor** du tableau de bord.
+
+### Valider les catégories proposées par les arbitres
+
+Quand un arbitre ajoute une catégorie ou un niveau absent de la liste, la
+proposition arrive dans la table `category_suggestions` avec le statut
+`en_attente`. Elle n'est visible que par son auteur. Pour la proposer à tous :
+
+```sql
+-- Propositions à examiner
+select country, kind, category_id, label, created_at
+from public.category_suggestions where status = 'en_attente' order by created_at;
+
+-- Valider (visible par tous à la prochaine synchronisation) ou refuser
+update public.category_suggestions set status = 'validee' where id = 'UUID';
+update public.category_suggestions set status = 'refusee' where id = 'UUID';
+```
+
+Refusez tout libellé qui contient un nom de personne ou une information personnelle.
 
 ## 7. Comptes de démonstration pour Apple et Google
 
